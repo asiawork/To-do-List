@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แปะไว้ก่อน</title>
+<meta name="theme-color" content="#f6efe2">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="viewport">
+  <div id="layer"></div>
+</div>
+
+<header class="bar bar-left">
+  <div class="brand">
+    <span class="brand-mark"></span>
+    <span class="brand-name">แปะไว้ก่อน</span>
+  </div>
+  <div class="swatches" id="swatches"></div>
+  <div class="count" id="count"></div>
+</header>
+
+<div class="bar bar-right">
+  <select id="fontSelect" title="ฟอนต์">
+    <option value="Mali">มะลิ</option>
+    <option value="Sriracha">ศรีราชา</option>
+    <option value="Itim">ไอติม</option>
+    <option value="Kodchasan">กชสาร</option>
+  </select>
+  <button class="chip" id="toggleDone" title="งานที่เสร็จแล้ว">ซ่อนที่เสร็จ</button>
+  <button class="chip" id="clearDone" title="เก็บงานที่เสร็จแล้วออกจากกระดาน">เก็บกวาด</button>
+  <span class="sep"></span>
+  <button class="icon" id="zoomOut" title="ย่อ">−</button>
+  <button class="chip zoom" id="zoomLabel" title="กลับไป 100%">100%</button>
+  <button class="icon" id="zoomIn" title="ขยาย">+</button>
+  <button class="icon" id="fitAll" title="ดูทั้งกระดาน">
+    <svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <span class="sep"></span>
+  <div class="menu-wrap">
+    <button class="icon" id="menuBtn" title="เพิ่มเติม">
+      <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>
+    </button>
+    <div class="menu" id="menu" hidden>
+      <button id="installBtn" hidden>ติดตั้งลงเครื่อง</button>
+      <button id="exportBtn">สำรองกระดานเป็นไฟล์</button>
+      <button id="importBtn">เปิดไฟล์สำรอง</button>
+      <button id="fullBtn">เต็มจอ</button>
+      <hr>
+      <button id="wipeBtn" class="danger">ล้างกระดานทั้งหมด</button>
+    </div>
+  </div>
+  <input type="file" id="importFile" accept="application/json,.json" hidden>
+</div>
+
+<div id="buddy">
+  <div class="bubble" id="bubble"></div>
+  <div class="buddy-body" id="buddyBody"></div>
+</div>
+
+<div id="fx"></div>
+<div id="toast" hidden><span id="toastMsg"></span><button id="toastUndo">เอาคืน</button></div>
+
+<script src="character.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
