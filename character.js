@@ -46,12 +46,20 @@
     const neck = `<rect x="91" y="106" width="18" height="34" fill="${L.skin}"/>` + line('M91 108 L91 140 M109 108 L109 140', 3.5);
     const shirt = `<path d="M56 224 C56 172 66 142 86 134 Q100 146 114 134 C134 142 144 172 144 224 Z" fill="${L.shirt}" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>`;
     const face = `<ellipse cx="100" cy="80" rx="33" ry="38" fill="${L.skin}" stroke="${INK}" stroke-width="4"/>`;
+    // hair cap: covers the whole top of the face outline so no head line shows through the hair;
+    // only the hairline (where hair meets skin) gets an ink line
+    const cap = (y, hairline) => {
+      const dx = 35.8 * Math.sqrt(1 - Math.pow((y - 80) / 40.8, 2));
+      const L1 = (100 - dx).toFixed(1), R1 = (100 + dx).toFixed(1);
+      return `<path d="M${L1} ${y} A35.8 40.8 0 ${y > 80 ? 1 : 0} 1 ${R1} ${y} L${hairline} Z" fill="${L.hairColor}"/>` +
+        (outline ? line('M' + hairline, 3) : '');
+    };
     const bangs = L.hair === 'curly' ? blob(CURLY_FRINGE, L.hairColor)
       : L.hair === 'sidepart'
-      ? `<path d="M66 82 C61 50 82 35 104 35 C126 35 141 50 134 82 C130 66 120 57 108 54 C96 52 80 62 66 82 Z" fill="${L.hairColor}"${outline}/>` + line('M108 36 Q106 46 108 54', 2.6)
+      ? cap(82, '134 82 C130 66 120 57 108 54 C96 52 80 62 65 82') + line('M108 40 Q106 47 108 54', 2.6)
       : L.hair === 'short'
-      ? `<path d="M66 76 C63 48 82 37 100 37 C120 37 138 48 134 76 L127 63 L119 70 L112 59 L104 67 L96 57 L88 67 L80 60 L73 70 Z" fill="${L.hairColor}"${outline}/>`
-      : `<path d="M67 86 C62 52 82 38 100 38 C122 38 140 54 133 90 C128 72 118 60 104 58 C98 68 82 76 67 86 Z" fill="${L.hairColor}"${outline}/>`;
+      ? cap(76, '134 76 L127 63 L119 70 L112 59 L104 67 L96 57 L88 67 L80 60 L73 70 L65 76')
+      : cap(88, '134 90 C128 72 118 60 104 58 C98 68 82 76 66 88');
     const blush = L.blush ? `<ellipse cx="77" cy="103" rx="5.5" ry="3" fill="#ff9fb4" opacity=".85"/><ellipse cx="123" cy="103" rx="5.5" ry="3" fill="#ff9fb4" opacity=".85"/>` : '';
     const glasses = L.glasses
       ? `<circle cx="87" cy="90" r="10" fill="#fff" fill-opacity=".55" stroke="${INK}" stroke-width="3.5"/>` +
