@@ -716,7 +716,7 @@
   }
   // ---------- look panel ----------
   const LOOK_OPTS = {
-    hair: [['long', 'ยาว'], ['bob', 'บ็อบ'], ['bun', 'มัดจุก']],
+    hair: [['long', 'ยาว'], ['bob', 'บ็อบ'], ['bun', 'มัดจุก'], ['short', 'สั้น']],
     hairColor: ['#1b1b1b', '#6B4128', '#B5763C', '#E8C15A', '#F49CB8', '#7CB8E8', '#A0A0A0'],
     skin: ['#ffffff', '#FDE7D6', '#F2C9A6', '#D9A37C', '#B0784F', '#7E5136'],
     shirt: ['#ffffff', '#FFE98A', '#FFC6D3', '#BDE3FF', '#C9F0C2', '#DCCBFF', '#3b3b3b'],
