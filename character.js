@@ -32,16 +32,22 @@
     const hairBackShapes = {
       long: 'M100 30 C55 30 48 70 52 110 C54 140 40 160 48 185 C52 200 44 210 50 224 L150 224 C156 207 148 195 152 180 C158 155 146 140 148 110 C152 70 145 30 100 30 Z',
       bob: 'M100 30 C56 30 50 68 53 104 C54 120 56 132 70 134 L130 134 C144 132 146 120 147 104 C150 68 144 30 100 30 Z',
-      bun: 'M100 34 C62 34 58 68 62 98 L138 98 C142 68 138 34 100 34 Z',
+      pony: 'M100 32 C61 32 57 66 61 98 L139 98 C143 66 139 32 100 32 Z',
       sidepart: 'M100 30 C60 30 55 58 60 90 L67 90 L67 70 L133 70 L133 90 L140 90 C145 58 140 30 100 30 Z',
       short: 'M100 31 C60 31 56 60 61 88 L67 88 L67 70 L133 70 L133 88 L139 88 C144 60 140 31 100 31 Z',
     };
-    const headHair = ['short', 'bun', 'sidepart', 'curly'].includes(L.hair); // short styles tilt with the head
+    const headHair = ['short', 'pony', 'sidepart', 'curly'].includes(L.hair); // short styles tilt with the head
     const hairBack = L.hair === 'curly'
       ? blob(CURLY_BACK, L.hairColor)
       : `<path d="${hairBackShapes[L.hair] || hairBackShapes.long}" fill="${L.hairColor}"${outline}/>`;
-    const bun = L.hair === 'bun'
-      ? `<circle cx="100" cy="28" r="16" fill="${L.hairColor}" stroke="${INK}" stroke-width="3.5"/>` + line('M90 40 Q100 46 110 40', 3)
+    // ponytail swinging out behind the right side of the head, with a hair tie
+    // ponytail hangs behind the shoulders (body layer); the hair tie sits on the head
+    const ponyTail = L.hair === 'pony'
+      ? `<path d="M124 44 C147 40 160 60 157 86 C155 108 160 126 150 144 C144 130 135 118 137 96 C138 80 134 66 120 58 Z" fill="${L.hairColor}" stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"/>` +
+        line('M146 72 Q150 92 147 112', 2.4)
+      : '';
+    const bun = L.hair === 'pony'
+      ? `<ellipse cx="129" cy="50" rx="6" ry="7.5" transform="rotate(-30 129 50)" fill="${L.note}" stroke="${INK}" stroke-width="3"/>`
       : '';
     const neck = `<rect x="91" y="106" width="18" height="34" fill="${L.skin}"/>` + line('M91 108 L91 140 M109 108 L109 140', 3.5);
     const shirt = `<path d="M56 224 C56 172 66 142 86 134 Q100 146 114 134 C134 142 144 172 144 224 Z" fill="${L.shirt}" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>`;
@@ -79,16 +85,16 @@
       o: `<ellipse cx="100" cy="108" rx="2.6" ry="3" fill="none" stroke="${INK}" stroke-width="2.6"/>`,
       tiny: line('M97.5 108 Q100 109.5 102.5 108', 2.6),
     };
-    const lift = L.hair === 'bun' ? -16 : L.hair === 'curly' ? -8 : 0;
+    const lift = L.hair === 'curly' ? -8 : 0;
     const headNote = () =>
       `<g class="head-note" transform="translate(0 ${lift}) rotate(-9 100 22)"><rect x="84" y="6" width="32" height="28" rx="2" fill="${L.note}" stroke="${INK}" stroke-width="3.5"/>` +
       line('M90 16 L110 16 M90 23 L104 23', 2.4) + `</g>`;
 
     const head = (eye, mouth, opts = {}) =>
       `<g class="head"${opts.tilt ? ` transform="rotate(${opts.tilt} 100 110)"` : ''}>` +
-      (headHair ? hairBack : '') + bun + face + bangs + blush + glasses + eyes[eye] + mouths[mouth] + (opts.noNote ? '' : headNote()) + `</g>`;
+      (headHair ? hairBack : '') + face + bangs + bun + blush + glasses + eyes[eye] + mouths[mouth] + (opts.noNote ? '' : headNote()) + `</g>`;
 
-    return { limb, head, body: (headHair ? '' : hairBack) + neck + shirt };
+    return { limb, head, body: ponyTail + (headHair ? '' : hairBack) + neck + shirt };
   }
 
   const sparkle = (x, y, s = 1) =>
