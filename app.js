@@ -112,15 +112,27 @@
     };
     requestAnimationFrame(step);
   }
-  function fitAll() {
+  // fit the whole board to the window; when the zones sit in one row, stretch
+  // their height so the row fills the screen exactly
+  const TOP = 78, SIDE = 18, BOTTOM = 14;
+  function fitAll(instant) {
+    const W = innerWidth - SIDE * 2, H = innerHeight - TOP - BOTTOM;
+    const zs = state.zones;
+    if (zs.length && zs.every((z) => z.y === zs[0].y && z.h === zs[0].h)) {
+      const rowW = Math.max(...zs.map((z) => z.x + z.w)) - Math.min(...zs.map((z) => z.x));
+      const lowest = Math.max(0, ...state.notes.filter((n) => zoneOf(n)).map((n) => n.y + NOTE_H + 30 - zs[0].y));
+      const h = Math.max(600, lowest, Math.round(rowW * H / W));
+      zs.forEach((z) => { z.h = h; renderZone(z); });
+    }
     const boxes = state.notes.filter((n) => !(state.hideDone && n.done)).map((n) => ({ x: n.x, y: n.y, w: NOTE_W, h: NOTE_H }))
-      .concat(state.zones.map((z) => ({ x: z.x, y: z.y, w: z.w, h: z.h })));
+      .concat(zs.map((z) => ({ x: z.x, y: z.y, w: z.w, h: z.h })));
     if (!boxes.length) return animateView({ x: 120, y: 120, s: 1 });
     const minX = Math.min(...boxes.map((b) => b.x)), minY = Math.min(...boxes.map((b) => b.y));
     const maxX = Math.max(...boxes.map((b) => b.x + b.w)), maxY = Math.max(...boxes.map((b) => b.y + b.h));
-    const pad = 50, W = innerWidth, H = innerHeight - 80;
-    const s = Math.min(1.25, Math.max(MIN_Z, Math.min((W - pad * 2) / (maxX - minX), (H - pad * 2) / (maxY - minY))));
-    animateView({ s, x: (W - (maxX - minX) * s) / 2 - minX * s, y: 80 + (H - (maxY - minY) * s) / 2 - minY * s });
+    const sc = Math.min(1.25, Math.max(MIN_Z, Math.min(W / (maxX - minX), H / (maxY - minY))));
+    const target = { s: sc, x: SIDE + (W - (maxX - minX) * sc) / 2 - minX * sc, y: TOP + (H - (maxY - minY) * sc) / 2 - minY * sc };
+    if (instant === true) { Object.assign(state.view, target); applyView(); save(); }
+    else animateView(target);
   }
 
   // ---------- notes ----------
@@ -552,7 +564,7 @@
     const c = toBoard(innerWidth / 2, innerHeight / 2);
     animateView({ s: 1, x: innerWidth / 2 - c.x, y: innerHeight / 2 - c.y });
   });
-  $('#fitAll').addEventListener('click', fitAll);
+  $('#fitAll').addEventListener('click', () => fitAll());
 
   const menu = $('#menu');
   $('#menuBtn').addEventListener('click', (e) => { e.stopPropagation(); menu.hidden = !menu.hidden; });
@@ -716,6 +728,8 @@
   resetRoutines();
   setInterval(resetRoutines, 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) resetRoutines(); });
-  if (!localStorage.getItem(KEY)) setTimeout(fitAll, 50);
+  fitAll(true);
+  let resizeTimer;
+  addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => fitAll(true), 120); });
   addEventListener('beforeunload', () => { if (editingId) endEdit(); try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} });
 })();
