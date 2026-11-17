@@ -170,12 +170,12 @@ select {
 
 /* ---------- buddy ---------- */
 #buddy { position: fixed; right: 22px; bottom: -8px; z-index: 9; display: flex; align-items: flex-end; pointer-events: none; }
-.buddy-body { width: 196px; cursor: pointer; pointer-events: auto; transform-origin: 50% 100%; }
+.buddy-body { width: 270px; cursor: pointer; pointer-events: auto; transform-origin: 50% 100%; }
 .buddy-body svg { display: block; width: 100%; height: auto; overflow: visible; }
 .bubble {
-  position: relative; margin: 0 -8px 176px 0; max-width: 240px;
+  position: relative; margin: 0 -10px 244px 0; max-width: 240px;
   background: #fff; border: 2.5px solid var(--ink); border-radius: 18px;
-  padding: 9px 14px; font-size: 17px; line-height: 1.35; box-shadow: 3px 3px 0 var(--ink);
+  padding: 10px 16px; font-size: 19px; line-height: 1.35; box-shadow: 3px 3px 0 var(--ink);
   transition: opacity .2s, transform .2s; transform-origin: 100% 100%;
 }
 .bubble::after {
