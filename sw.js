@@ -1,4 +1,4 @@
-const CACHE = 'paekaikon-v1';
+const CACHE = 'paekaikon-v2';
 const ASSETS = [
   './', 'index.html', 'style.css', 'app.js', 'character.js', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',

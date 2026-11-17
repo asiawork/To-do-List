@@ -12,6 +12,8 @@
   const KEY = 'paekaikon-board-v1';
   const NOTE_W = 220, NOTE_H = 200;
   const MIN_Z = 0.25, MAX_Z = 2;
+  const ZONE_W = 540, ZONE_H = 1250, ZONE_GAP = 60;
+  const ZONE_TINTS = ['#FFE98A', '#BDE3FF', '#FFC6D3', '#C9F0C2', '#DCCBFF', '#FFD3A8'];
 
   const $ = (s) => document.querySelector(s);
   const viewport = $('#viewport'), layer = $('#layer');
@@ -23,22 +25,39 @@
   let cheerUntil = 0, waveUntil = Date.now() + 3500;
   let undoStack = [];
 
+  function defaultZones() {
+    return ['Routine', 'Project', 'Meeting', 'Adhoc'].map((name, i) => ({
+      id: uid(), name, x: i * (ZONE_W + ZONE_GAP), y: 0, w: ZONE_W, h: ZONE_H,
+      tint: ZONE_TINTS[i], routine: i === 0,
+    }));
+  }
   function seed() {
     const now = Date.now();
+    const zx = (i) => i * (ZONE_W + ZONE_GAP);
+    const note = (text, i, row, col, color, extra) => ({
+      id: uid(), text, x: zx(i) + 36 + col * 250, y: 130 + row * 240, color, rot: [-2, 1.5, -1, 2.5][(i + row + col) % 4],
+      done: false, z: 1, t: now, ...extra,
+    });
     return {
+      zones: defaultZones(),
       notes: [
-        { id: uid(), text: 'รดน้ำต้นไม้', x: 120, y: 140, color: COLORS[3].c, rot: -2.5, done: true, z: 1, t: now },
-        { id: uid(), text: 'ซื้อขนมให้แมว', x: 380, y: 120, color: COLORS[1].c, rot: 2, done: false, z: 2, t: now },
-        { id: uid(), text: 'โทรหาแม่', x: 250, y: 380, color: COLORS[0].c, rot: 1, done: false, z: 3, t: now },
+        note('เช็กอีเมลตอนเช้า', 0, 0, 0, COLORS[0].c, { repeat: 'day' }),
+        note('ส่งรายงานประจำสัปดาห์', 0, 0, 1, COLORS[2].c, { repeat: 'week' }),
+        note('ร่างโครงหน้าเว็บใหม่', 1, 0, 0, COLORS[3].c),
+        note('เตรียมสรุปก่อนประชุมทีม', 2, 0, 0, COLORS[1].c),
+        note('ตอบคำถาม IC', 3, 0, 0, COLORS[5].c),
       ],
-      view: { x: 180, y: 110, s: 1 },
+      view: { x: 60, y: 110, s: 0.55 },
       font: 'Mali',
       hideDone: false,
-      z: 3,
+      z: 5,
     };
   }
   function load() {
-    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.notes)) return s; } catch (e) {}
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY));
+      if (s && Array.isArray(s.notes)) { if (!Array.isArray(s.zones)) s.zones = defaultZones(); return s; }
+    } catch (e) {}
     return null;
   }
   let saveTimer;
@@ -49,6 +68,17 @@
   function uid() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); }
   const byId = (id) => state.notes.find((n) => n.id === id);
   const elOf = (id) => layer.querySelector(`.note[data-id="${id}"]`);
+  const zoneById = (id) => state.zones.find((z) => z.id === id);
+  const zoneEl = (id) => layer.querySelector(`.zone[data-id="${id}"]`);
+  function zoneOf(n) {
+    const cx = n.x + NOTE_W / 2, cy = n.y + NOTE_H / 2;
+    for (let i = state.zones.length - 1; i >= 0; i--) {
+      const z = state.zones[i];
+      if (cx >= z.x && cx <= z.x + z.w && cy >= z.y && cy <= z.y + z.h) return z;
+    }
+    return null;
+  }
+  const inRoutine = (n) => !!(zoneOf(n) || {}).routine;
 
   // ---------- view ----------
   function applyView() {
@@ -83,11 +113,12 @@
     requestAnimationFrame(step);
   }
   function fitAll() {
-    const list = state.notes.filter((n) => !(state.hideDone && n.done));
-    if (!list.length) return animateView({ x: 120, y: 120, s: 1 });
-    const minX = Math.min(...list.map((n) => n.x)), minY = Math.min(...list.map((n) => n.y));
-    const maxX = Math.max(...list.map((n) => n.x + NOTE_W)), maxY = Math.max(...list.map((n) => n.y + NOTE_H));
-    const pad = 90, W = innerWidth, H = innerHeight - 80;
+    const boxes = state.notes.filter((n) => !(state.hideDone && n.done)).map((n) => ({ x: n.x, y: n.y, w: NOTE_W, h: NOTE_H }))
+      .concat(state.zones.map((z) => ({ x: z.x, y: z.y, w: z.w, h: z.h })));
+    if (!boxes.length) return animateView({ x: 120, y: 120, s: 1 });
+    const minX = Math.min(...boxes.map((b) => b.x)), minY = Math.min(...boxes.map((b) => b.y));
+    const maxX = Math.max(...boxes.map((b) => b.x + b.w)), maxY = Math.max(...boxes.map((b) => b.y + b.h));
+    const pad = 50, W = innerWidth, H = innerHeight - 80;
     const s = Math.min(1.25, Math.max(MIN_Z, Math.min((W - pad * 2) / (maxX - minX), (H - pad * 2) / (maxY - minY))));
     animateView({ s, x: (W - (maxX - minX) * s) / 2 - minX * s, y: 80 + (H - (maxY - minY) * s) / 2 - minY * s });
   }
@@ -107,6 +138,9 @@
     return COLORS[(i + 1) % COLORS.length].c;
   }
 
+  const REPEAT_LABEL = { day: 'ทุกวัน', week: 'ทุกสัปดาห์', month: 'ทุกเดือน' };
+  const REPEAT_NEXT = { day: 'week', week: 'month', month: 'day' };
+  const REPEAT_ICON = '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const CHECK_SVG = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12.5l4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function renderNote(n, pop) {
@@ -119,6 +153,7 @@
         '<div class="tape"></div>' +
         '<div class="body"><div class="text" data-ph="งานที่ต้องทำ" spellcheck="false"></div></div>' +
         '<div class="stamp">เสร็จ!</div>' +
+        '<button class="repeat" title="รอบของงานประจำ"></button>' +
         '<div class="tools">' +
           `<button class="check" title="เสร็จแล้ว">${CHECK_SVG}</button>` +
           '<span class="grow"></span>' +
@@ -136,12 +171,48 @@
     el.style.setProperty('--tape', (n.rot * -1.4 - 2) + 'deg');
     el.style.setProperty('--next', nextColor(n.color));
     el.classList.toggle('done', !!n.done);
+    const routine = inRoutine(n);
+    el.classList.toggle('in-routine', routine);
+    if (routine) el.querySelector('.repeat').innerHTML = REPEAT_ICON + REPEAT_LABEL[n.repeat || 'day'];
     const t = el.querySelector('.text');
     if (editingId !== n.id && t.textContent !== n.text) t.textContent = n.text;
     t.style.setProperty('--fs', fontSizeFor(n.text) + 'px');
     return el;
   }
+  function renderZone(z) {
+    let el = zoneEl(z.id);
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'zone';
+      el.dataset.id = z.id;
+      el.innerHTML =
+        '<div class="zone-head"><div class="zone-title" spellcheck="false"></div><span class="zone-count"></span>' +
+        '<button class="zone-del" title="ลบโซน">×</button></div>' +
+        '<div class="zone-resize" title="ปรับขนาดโซน"></div>';
+      layer.insertBefore(el, layer.querySelector('.note'));
+    }
+    el.style.left = z.x + 'px'; el.style.top = z.y + 'px';
+    el.style.width = z.w + 'px'; el.style.height = z.h + 'px';
+    el.style.setProperty('--zc', z.tint);
+    el.classList.toggle('routine', !!z.routine);
+    const t = el.querySelector('.zone-title');
+    if (document.activeElement !== t && t.textContent !== z.name) t.textContent = z.name;
+    return el;
+  }
+  function renderZoneCounts() {
+    const counts = {};
+    state.notes.forEach((n) => { if (!n.done) { const z = zoneOf(n); if (z) counts[z.id] = (counts[z.id] || 0) + 1; } });
+    state.zones.forEach((z) => {
+      const el = zoneEl(z.id); if (!el) return;
+      const c = el.querySelector('.zone-count');
+      c.textContent = counts[z.id] || '';
+      c.hidden = !counts[z.id];
+    });
+  }
   function renderAll() {
+    const zids = new Set(state.zones.map((z) => z.id));
+    layer.querySelectorAll('.zone').forEach((el) => { if (!zids.has(el.dataset.id)) el.remove(); });
+    state.zones.forEach(renderZone);
     const ids = new Set(state.notes.map((n) => n.id));
     layer.querySelectorAll('.note').forEach((el) => { if (!ids.has(el.dataset.id)) el.remove(); });
     state.notes.forEach((n) => renderNote(n));
@@ -153,6 +224,7 @@
     updateBuddy();
   }
   function renderCount() {
+    renderZoneCounts();
     const total = state.notes.length, done = state.notes.filter((n) => n.done).length;
     const left = total - done;
     $('#count').innerHTML = total ? `เหลือ <b>${left}</b> จาก ${total} งาน` : 'กระดานว่าง';
@@ -164,6 +236,7 @@
       color: color || COLORS[Math.floor(Math.random() * COLORS.length)].c,
       rot: +(Math.random() * 5 - 2.5).toFixed(1), done: false, z: ++state.z, t: Date.now(), fresh: true,
     };
+    if (inRoutine(n)) n.repeat = 'day';
     state.notes.push(n);
     renderNote(n, true);
     renderCount();
@@ -200,7 +273,7 @@
     state.notes = state.notes.filter((n) => !ids.includes(n.id));
     removed.forEach((n) => { const el = elOf(n.id); if (el) el.remove(); });
     if (removed.some((n) => n.text.trim())) {
-      undoStack.push(removed.map((n) => ({ ...n })));
+      undoStack.push({ notes: removed.map((n) => ({ ...n })), zones: [] });
       showToast(msg || 'ลบโน้ตแล้ว');
     }
     renderCount(); updateBuddy(); save();
@@ -208,13 +281,16 @@
   function undo() {
     const last = undoStack.pop();
     if (!last) return;
-    last.forEach((n) => { state.notes.push(n); renderNote(n, true); });
+    last.zones.forEach((z) => { state.zones.push(z); renderZone(z); });
+    last.notes.forEach((n) => { state.notes.push(n); renderNote(n, true); });
+    state.notes.forEach((n) => renderNote(n));
     hideToast(); renderCount(); updateBuddy(); save();
   }
 
   function toggleDone(id) {
     const n = byId(id); if (!n) return;
     n.done = !n.done;
+    if (n.done) n.doneAt = Date.now(); else delete n.doneAt;
     renderNote(n); renderCount();
     if (n.done) {
       const r = elOf(id).getBoundingClientRect();
@@ -307,7 +383,11 @@
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
       el.removeEventListener('pointercancel', up);
-      if (moved) { el.classList.remove('dragging'); draggingId = null; save(); updateBuddy(); }
+      if (moved) {
+        el.classList.remove('dragging'); draggingId = null;
+        if (inRoutine(n) && !n.repeat) n.repeat = 'day';
+        renderNote(n); renderCount(); save(); updateBuddy();
+      }
       else startEdit(id);
     };
     el.addEventListener('pointermove', move);
@@ -316,7 +396,10 @@
   });
   layer.addEventListener('click', (e) => {
     const btn = e.target.closest('button'); if (!btn) return;
-    const el = btn.closest('.note'); const id = el.dataset.id; const n = byId(id);
+    const el = btn.closest('.note'); if (!el) return;
+    const id = el.dataset.id; const n = byId(id);
+    if (!el) return;
+    if (btn.classList.contains('repeat')) { n.repeat = REPEAT_NEXT[n.repeat || 'day']; renderNote(n); save(); return; }
     if (btn.classList.contains('check')) { if (editingId === id) endEdit(); if (byId(id)) toggleDone(id); }
     else if (btn.classList.contains('swatch')) { n.color = nextColor(n.color); renderNote(n); save(); }
     else if (btn.classList.contains('del')) { if (editingId === id) { editingId = null; } removeNotes([id]); }
@@ -326,7 +409,7 @@
   // ---------- pointer: board ----------
   let spaceDown = false;
   viewport.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.note')) return;
+    if (e.target.closest('.note, .zone-head, .zone-resize')) return;
     lastActivity = Date.now();
     if (editingId) endEdit();
     const sx = e.clientX, sy = e.clientY, ox = state.view.x, oy = state.view.y;
@@ -356,6 +439,95 @@
     else { state.view.x -= e.deltaX; state.view.y -= e.deltaY; applyView(); save(); }
   }, { passive: false });
 
+  // ---------- zones ----------
+  layer.addEventListener('pointerdown', (e) => {
+    const zEl = e.target.closest('.zone'); if (!zEl) return;
+    const head = e.target.closest('.zone-head'), handle = e.target.closest('.zone-resize');
+    if (!head && !handle) return;
+    if (e.target.closest('.zone-del')) return;
+    const title = zEl.querySelector('.zone-title');
+    if (head && document.activeElement === title && e.target === title) return; // caret
+    e.stopPropagation(); e.preventDefault();
+    if (editingId) endEdit();
+    lastActivity = Date.now();
+    const z = zoneById(zEl.dataset.id);
+    const sx = e.clientX, sy = e.clientY, o = { ...z };
+    // notes that travel with the zone
+    const riders = head ? state.notes.filter((n) => zoneOf(n) === z).map((n) => ({ n, x: n.x, y: n.y })) : [];
+    let moved = false;
+    zEl.setPointerCapture(e.pointerId);
+    const move = (ev) => {
+      const dx = (ev.clientX - sx) / state.view.s, dy = (ev.clientY - sy) / state.view.s;
+      if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 4) { moved = true; zEl.classList.add('moving'); }
+      if (!moved) return;
+      if (handle) { z.w = Math.max(280, Math.round(o.w + dx)); z.h = Math.max(300, Math.round(o.h + dy)); }
+      else {
+        z.x = Math.round(o.x + dx); z.y = Math.round(o.y + dy);
+        riders.forEach((r) => { r.n.x = Math.round(r.x + dx); r.n.y = Math.round(r.y + dy); const ne = elOf(r.n.id); ne.style.left = r.n.x + 'px'; ne.style.top = r.n.y + 'px'; });
+      }
+      renderZone(z);
+    };
+    const up = () => {
+      zEl.removeEventListener('pointermove', move); zEl.removeEventListener('pointerup', up); zEl.removeEventListener('pointercancel', up);
+      zEl.classList.remove('moving');
+      if (!moved && head) {
+        title.contentEditable = 'plaintext-only';
+        if (title.contentEditable !== 'plaintext-only') title.contentEditable = 'true';
+        title.focus();
+        const r = document.createRange(); r.selectNodeContents(title); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      }
+      state.notes.forEach((n) => renderNote(n)); renderCount(); save();
+    };
+    zEl.addEventListener('pointermove', move); zEl.addEventListener('pointerup', up); zEl.addEventListener('pointercancel', up);
+  });
+  layer.addEventListener('keydown', (e) => {
+    if (!e.target.classList.contains('zone-title')) return;
+    if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.target.blur(); }
+  });
+  layer.addEventListener('focusout', (e) => {
+    const t = e.target; if (!t.classList || !t.classList.contains('zone-title')) return;
+    t.contentEditable = 'false';
+    const z = zoneById(t.closest('.zone').dataset.id);
+    const name = t.textContent.trim();
+    if (z) { if (name) z.name = name; t.textContent = z.name; save(); }
+  });
+  layer.addEventListener('click', (e) => {
+    const del = e.target.closest('.zone-del'); if (!del) return;
+    const z = zoneById(del.closest('.zone').dataset.id); if (!z) return;
+    state.zones = state.zones.filter((x) => x !== z);
+    zoneEl(z.id).remove();
+    undoStack.push({ notes: [], zones: [{ ...z }] });
+    showToast(`ลบโซน ${z.name} แล้ว`);
+    state.notes.forEach((n) => renderNote(n)); renderCount(); save();
+  });
+  function addZone() {
+    const right = state.zones.length ? Math.max(...state.zones.map((z) => z.x + z.w)) + ZONE_GAP : 0;
+    const top = state.zones.length ? Math.min(...state.zones.map((z) => z.y)) : 0;
+    const z = { id: uid(), name: 'โซนใหม่', x: right, y: top, w: ZONE_W, h: ZONE_H, tint: ZONE_TINTS[state.zones.length % ZONE_TINTS.length], routine: false };
+    state.zones.push(z); renderZone(z); save();
+    const s = state.view.s;
+    animateView({ s, x: innerWidth / 2 - (z.x + z.w / 2) * s, y: state.view.y });
+  }
+
+  // routine notes come back undone when their period rolls over
+  const pad2 = (v) => String(v).padStart(2, '0');
+  function periodKey(ts, repeat) {
+    const d = new Date(ts);
+    if (repeat === 'month') return d.getFullYear() + '-' + pad2(d.getMonth() + 1);
+    if (repeat === 'week') { const m = new Date(d); m.setHours(0, 0, 0, 0); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return 'w' + m.toDateString(); }
+    return d.toDateString();
+  }
+  function resetRoutines() {
+    const now = Date.now();
+    let back = 0;
+    state.notes.forEach((n) => {
+      if (!n.done || !inRoutine(n)) return;
+      const rep = n.repeat || 'day';
+      if (periodKey(n.doneAt || 0, rep) !== periodKey(now, rep)) { n.done = false; delete n.doneAt; renderNote(n); back++; }
+    });
+    if (back) { renderCount(); save(); say(`งานประจำกลับมาแล้ว ${back} อัน`); }
+  }
+
   // ---------- toolbar ----------
   const sw = $('#swatches');
   COLORS.forEach((col, i) => {
@@ -371,7 +543,7 @@
   [...$('#fontSelect').options].forEach((o) => { o.style.fontFamily = o.value; });
   $('#toggleDone').addEventListener('click', () => { state.hideDone = !state.hideDone; renderAll(); save(); });
   $('#clearDone').addEventListener('click', () => {
-    const ids = state.notes.filter((n) => n.done).map((n) => n.id);
+    const ids = state.notes.filter((n) => n.done && !inRoutine(n)).map((n) => n.id);
     if (ids.length) removeNotes(ids, `เก็บไป ${ids.length} งานที่เสร็จแล้ว`);
   });
   $('#zoomIn').addEventListener('click', () => zoomAt(innerWidth / 2, innerHeight / 2, 1.2));
@@ -402,13 +574,14 @@
     try {
       const data = JSON.parse(await f.text());
       if (!Array.isArray(data.notes)) throw new Error('bad');
-      state = { ...seed(), ...data, notes: data.notes };
+      state = { ...seed(), ...data, notes: data.notes, zones: Array.isArray(data.zones) ? data.zones : defaultZones() };
       layer.innerHTML = '';
       renderAll(); applyView(); save(); fitAll();
       say('เปิดกระดานเดิมให้แล้วน้า');
     } catch (err) { say('ไฟล์นี้เปิดไม่ได้ ลองไฟล์อื่นนะ'); }
     e.target.value = '';
   });
+  $('#addZoneBtn').addEventListener('click', addZone);
   $('#fullBtn').addEventListener('click', () => {
     if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.();
   });
@@ -540,5 +713,9 @@
   // ---------- go ----------
   applyView();
   renderAll();
+  resetRoutines();
+  setInterval(resetRoutines, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) resetRoutines(); });
+  if (!localStorage.getItem(KEY)) setTimeout(fitAll, 50);
   addEventListener('beforeunload', () => { if (editingId) endEdit(); try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} });
 })();

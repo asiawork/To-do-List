@@ -119,6 +119,41 @@ body.hide-done .note.done { display: none; }
 .note.pop { animation: pop .32s cubic-bezier(.3,1.5,.5,1); }
 @keyframes pop { from { transform: rotate(var(--rot)) scale(.6); opacity: 0; } }
 
+/* ---------- zones ---------- */
+.zone {
+  position: absolute; z-index: 0; pointer-events: none;
+  border-radius: 34px;
+  background: color-mix(in srgb, var(--zc) 26%, transparent);
+  border: 3px dashed color-mix(in srgb, var(--zc) 70%, #8a7a5c);
+}
+.zone.moving { box-shadow: 0 24px 50px -24px rgba(60,40,10,.35); }
+.zone-head {
+  position: absolute; left: 30px; top: 22px; right: 30px;
+  display: flex; align-items: center; gap: 14px;
+  pointer-events: auto; cursor: grab;
+}
+.zone.moving .zone-head { cursor: grabbing; }
+.zone-title { font-weight: 700; font-size: 64px; line-height: 1.2; outline: none; white-space: nowrap; }
+.zone-title[contenteditable="plaintext-only"], .zone-title[contenteditable="true"] { cursor: text; user-select: text; border-bottom: 4px dashed rgba(27,27,27,.25); }
+.zone-count { font-size: 26px; font-weight: 700; min-width: 44px; height: 44px; padding: 0 12px; border-radius: 22px; background: var(--ink); color: #fff; display: grid; place-items: center; }
+.zone-count[hidden] { display: none; }
+.zone-del { margin-left: auto; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; font-size: 30px; cursor: pointer; opacity: 0; transition: opacity .15s; }
+.zone-head:hover .zone-del { opacity: .55; }
+.zone-del:hover { opacity: 1 !important; background: rgba(0,0,0,.07); }
+.zone-resize { position: absolute; right: 6px; bottom: 6px; width: 40px; height: 40px; pointer-events: auto; cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, rgba(27,27,27,.18) 50%, rgba(27,27,27,.18) 58%, transparent 58%, transparent 70%, rgba(27,27,27,.18) 70%, rgba(27,27,27,.18) 78%, transparent 78%);
+  border-radius: 0 0 28px 0; }
+
+.note .repeat { display: none; }
+.note.in-routine .repeat {
+  position: absolute; left: 50%; bottom: 9px; transform: translateX(-50%); z-index: 2;
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 2px solid var(--ink); border-radius: 999px; background: rgba(255,255,255,.75);
+  padding: 2px 12px 2px 9px; font-size: 16px; cursor: pointer; white-space: nowrap;
+}
+.note.in-routine .repeat:hover { background: #fff; }
+.note.in-routine.done .stamp { opacity: .55; }
+
 /* ---------- bars ---------- */
 .bar {
   position: fixed; top: 14px; z-index: 10;
