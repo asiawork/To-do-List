@@ -10,6 +10,18 @@
   const line = (d, w = 4) =>
     `<path d="${d}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
 
+  // union of circles with one clean ink outline: outline layer first, fill layer on top
+  const blob = (circles, fill) =>
+    circles.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + 1.75}" fill="${INK}"/>`).join('') +
+    circles.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r - 1.75}" fill="${fill}"/>`).join('');
+  const CURLY_BACK = [];
+  for (let t = -28; t <= 208; t += 20) {
+    const a = t * Math.PI / 180;
+    CURLY_BACK.push([+(100 + 37 * Math.cos(a)).toFixed(1), +(74 - 37 * Math.sin(a)).toFixed(1), 13]);
+  }
+  CURLY_BACK.push([100, 62, 30]);
+  const CURLY_FRINGE = [[72, 62, 8], [81, 56, 9], [91, 53, 9], [101, 52, 9], [111, 53, 9], [120, 56, 9], [128, 62, 8]];
+
   function parts(L) {
     const outline = L.hairColor.toLowerCase() === INK ? '' : ` stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"`;
     // doodle limb: thick ink outline with skin inside
@@ -21,17 +33,23 @@
       long: 'M100 30 C55 30 48 70 52 110 C54 140 40 160 48 185 C52 200 44 210 50 224 L150 224 C156 207 148 195 152 180 C158 155 146 140 148 110 C152 70 145 30 100 30 Z',
       bob: 'M100 30 C56 30 50 68 53 104 C54 120 56 132 70 134 L130 134 C144 132 146 120 147 104 C150 68 144 30 100 30 Z',
       bun: 'M100 34 C62 34 58 68 62 98 L138 98 C142 68 138 34 100 34 Z',
+      sidepart: 'M100 30 C60 30 55 58 60 90 L67 90 L67 70 L133 70 L133 90 L140 90 C145 58 140 30 100 30 Z',
       short: 'M100 31 C60 31 56 60 61 88 L67 88 L67 70 L133 70 L133 88 L139 88 C144 60 140 31 100 31 Z',
     };
-    const headHair = L.hair === 'short' || L.hair === 'bun'; // short styles tilt with the head
-    const hairBack = `<path d="${hairBackShapes[L.hair] || hairBackShapes.long}" fill="${L.hairColor}"${outline}/>`;
+    const headHair = ['short', 'bun', 'sidepart', 'curly'].includes(L.hair); // short styles tilt with the head
+    const hairBack = L.hair === 'curly'
+      ? blob(CURLY_BACK, L.hairColor)
+      : `<path d="${hairBackShapes[L.hair] || hairBackShapes.long}" fill="${L.hairColor}"${outline}/>`;
     const bun = L.hair === 'bun'
       ? `<circle cx="100" cy="28" r="16" fill="${L.hairColor}" stroke="${INK}" stroke-width="3.5"/>` + line('M90 40 Q100 46 110 40', 3)
       : '';
     const neck = `<rect x="91" y="106" width="18" height="34" fill="${L.skin}"/>` + line('M91 108 L91 140 M109 108 L109 140', 3.5);
     const shirt = `<path d="M56 224 C56 172 66 142 86 134 Q100 146 114 134 C134 142 144 172 144 224 Z" fill="${L.shirt}" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>`;
     const face = `<ellipse cx="100" cy="80" rx="33" ry="38" fill="${L.skin}" stroke="${INK}" stroke-width="4"/>`;
-    const bangs = L.hair === 'short'
+    const bangs = L.hair === 'curly' ? blob(CURLY_FRINGE, L.hairColor)
+      : L.hair === 'sidepart'
+      ? `<path d="M66 82 C61 50 82 35 104 35 C126 35 141 50 134 82 C130 66 120 57 108 54 C96 52 80 62 66 82 Z" fill="${L.hairColor}"${outline}/>` + line('M108 36 Q106 46 108 54', 2.6)
+      : L.hair === 'short'
       ? `<path d="M66 76 C63 48 82 37 100 37 C120 37 138 48 134 76 L127 63 L119 70 L112 59 L104 67 L96 57 L88 67 L80 60 L73 70 Z" fill="${L.hairColor}"${outline}/>`
       : `<path d="M67 86 C62 52 82 38 100 38 C122 38 140 54 133 90 C128 72 118 60 104 58 C98 68 82 76 67 86 Z" fill="${L.hairColor}"${outline}/>`;
     const blush = L.blush ? `<ellipse cx="77" cy="103" rx="5.5" ry="3" fill="#ff9fb4" opacity=".85"/><ellipse cx="123" cy="103" rx="5.5" ry="3" fill="#ff9fb4" opacity=".85"/>` : '';
@@ -53,7 +71,7 @@
       o: `<ellipse cx="100" cy="108" rx="2.6" ry="3" fill="none" stroke="${INK}" stroke-width="2.6"/>`,
       tiny: line('M97.5 108 Q100 109.5 102.5 108', 2.6),
     };
-    const lift = L.hair === 'bun' ? -16 : 0;
+    const lift = L.hair === 'bun' ? -16 : L.hair === 'curly' ? -8 : 0;
     const headNote = () =>
       `<g class="head-note" transform="translate(0 ${lift}) rotate(-9 100 22)"><rect x="84" y="6" width="32" height="28" rx="2" fill="${L.note}" stroke="${INK}" stroke-width="3.5"/>` +
       line('M90 16 L110 16 M90 23 L104 23', 2.4) + `</g>`;
