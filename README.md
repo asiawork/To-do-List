@@ -27,5 +27,5 @@
 |---|---|
 | `index.html` `style.css` `app.js` | ตัวแอป |
 | `character.js` | น้องโน้ต (SVG วาดด้วยโค้ด 7 ท่า: idle, wave, write, cheer, carry, sleep, tea) |
-| `fonts/` | ฟอนต์ไทย Mali, Sriracha, Itim, Kodchasan (SIL Open Font License) ฝังไว้ให้ใช้ออฟไลน์ |
+| `fonts/` | ฟอนต์ไทย Mali, Sriracha, Itim, Kodchasan (SIL Open Font License) ฝังไว้ให้ใช้ออฟไลน์ ใบอนุญาตอยู่ใน `fonts/OFL.txt` |
 | `sw.js` `manifest.webmanifest` `icons/` | ทำให้ติดตั้งเป็นแอปและใช้ออฟไลน์ได้ |
