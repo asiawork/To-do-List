@@ -587,6 +587,7 @@
       const data = JSON.parse(await f.text());
       if (!Array.isArray(data.notes)) throw new Error('bad');
       state = { ...seed(), ...data, notes: data.notes, zones: Array.isArray(data.zones) ? data.zones : defaultZones() };
+      state.buddy = { ...Character.DEFAULT_LOOK, ...(state.buddy || {}) };
       layer.innerHTML = '';
       renderAll(); applyView(); save(); fitAll();
       say('เปิดกระดานเดิมให้แล้วน้า');
@@ -705,7 +706,7 @@
     if (m !== currentPose) {
       const editing = editingId && byId(editingId);
       const dragging = draggingId && byId(draggingId);
-      buddyBody.innerHTML = Character.render(m, (dragging || editing || {}).color);
+      buddyBody.innerHTML = Character.render(m, (dragging || editing || {}).color, state.buddy);
       currentPose = m;
     }
     if (m !== lastMood) {
@@ -713,6 +714,52 @@
       lastMood = m;
     }
   }
+  // ---------- look panel ----------
+  const LOOK_OPTS = {
+    hair: [['long', 'ยาว'], ['bob', 'บ็อบ'], ['bun', 'มัดจุก']],
+    hairColor: ['#1b1b1b', '#6B4128', '#B5763C', '#E8C15A', '#F49CB8', '#7CB8E8', '#A0A0A0'],
+    skin: ['#ffffff', '#FDE7D6', '#F2C9A6', '#D9A37C', '#B0784F', '#7E5136'],
+    shirt: ['#ffffff', '#FFE98A', '#FFC6D3', '#BDE3FF', '#C9F0C2', '#DCCBFF', '#3b3b3b'],
+    note: COLORS.map((c) => c.c),
+  };
+  const panel = $('#lookPanel');
+  function renderLookPanel() {
+    const L = state.buddy;
+    panel.querySelectorAll('.opts').forEach((box) => {
+      const key = box.dataset.key;
+      if (!box.children.length) {
+        LOOK_OPTS[key].forEach((o) => {
+          const b = document.createElement('button');
+          if (Array.isArray(o)) { b.className = 'txt'; b.dataset.v = o[0]; b.textContent = o[1]; }
+          else { b.dataset.v = o; b.style.setProperty('--c', o); }
+          box.appendChild(b);
+        });
+      }
+      [...box.children].forEach((b) => b.classList.toggle('on', b.dataset.v.toLowerCase() === String(L[key]).toLowerCase()));
+    });
+    panel.querySelectorAll('input[data-key]').forEach((i) => { i.checked = !!L[i.dataset.key]; });
+  }
+  function applyLook() {
+    $('#buddy').classList.toggle('hidden', !state.buddy.show);
+    currentPose = '';
+    updateBuddy();
+    renderLookPanel();
+    save();
+  }
+  panel.addEventListener('click', (e) => {
+    const b = e.target.closest('.opts button'); if (!b) return;
+    state.buddy[b.closest('.opts').dataset.key] = b.dataset.v;
+    applyLook();
+  });
+  panel.addEventListener('change', (e) => {
+    const k = e.target.dataset.key; if (!k) return;
+    state.buddy[k] = e.target.checked;
+    applyLook();
+  });
+  $('#lookBtn').addEventListener('click', () => { renderLookPanel(); panel.hidden = false; $('#buddy').classList.add('dressing'); });
+  $('#lookClose').addEventListener('click', () => { panel.hidden = true; $('#buddy').classList.remove('dressing'); });
+  $('#lookReset').addEventListener('click', () => { state.buddy = { ...Character.DEFAULT_LOOK }; applyLook(); });
+
   buddyBody.addEventListener('click', () => {
     lastActivity = Date.now();
     buddyBody.classList.remove('boing'); void buddyBody.offsetWidth; buddyBody.classList.add('boing');
@@ -723,6 +770,8 @@
   setInterval(updateBuddy, 1000);
 
   // ---------- go ----------
+  state.buddy = { ...Character.DEFAULT_LOOK, ...(state.buddy || {}) };
+  $('#buddy').classList.toggle('hidden', !state.buddy.show);
   applyView();
   renderAll();
   resetRoutines();

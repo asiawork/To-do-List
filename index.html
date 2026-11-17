@@ -48,6 +48,7 @@
     <div class="menu" id="menu" hidden>
       <button id="installBtn" hidden>ติดตั้งลงเครื่อง</button>
       <button id="addZoneBtn">เพิ่มโซน</button>
+      <button id="lookBtn">แต่งตัวน้องโน้ต</button>
       <hr>
       <button id="exportBtn">สำรองกระดานเป็นไฟล์</button>
       <button id="importBtn">เปิดไฟล์สำรอง</button>
@@ -62,6 +63,21 @@
 <div id="buddy">
   <div class="bubble" id="bubble"></div>
   <div class="buddy-body" id="buddyBody"></div>
+</div>
+
+<div id="lookPanel" hidden>
+  <div class="look-head"><b>แต่งตัวน้องโน้ต</b><button class="icon" id="lookClose" title="ปิด">×</button></div>
+  <div class="look-row"><span>ทรงผม</span><div class="opts" data-key="hair"></div></div>
+  <div class="look-row"><span>สีผม</span><div class="opts" data-key="hairColor"></div></div>
+  <div class="look-row"><span>สีผิว</span><div class="opts" data-key="skin"></div></div>
+  <div class="look-row"><span>สีเสื้อ</span><div class="opts" data-key="shirt"></div></div>
+  <div class="look-row"><span>โน้ตบนหัว</span><div class="opts" data-key="note"></div></div>
+  <div class="look-row toggles">
+    <label><input type="checkbox" data-key="glasses"> แว่น</label>
+    <label><input type="checkbox" data-key="blush"> แก้มชมพู</label>
+    <label><input type="checkbox" data-key="show"> แสดงน้องโน้ต</label>
+  </div>
+  <button class="chip" id="lookReset">กลับเป็นแบบเดิม</button>
 </div>
 
 <div id="fx"></div>
