@@ -735,6 +735,7 @@
           box.appendChild(b);
         });
       }
+      if (key === 'hair') [...box.children].forEach((b) => { b.className = 'hair-thumb'; b.title = b.dataset.label || (b.dataset.label = b.textContent); b.innerHTML = Character.thumb({ ...L, hair: b.dataset.v, note: L.note }); });
       [...box.children].forEach((b) => b.classList.toggle('on', b.dataset.v.toLowerCase() === String(L[key]).toLowerCase()));
     });
     panel.querySelectorAll('input[data-key]').forEach((i) => { i.checked = !!L[i.dataset.key]; });

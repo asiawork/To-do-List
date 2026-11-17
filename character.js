@@ -141,6 +141,11 @@
       const fn = poses[pose] || poses.idle;
       return `<svg viewBox="0 -16 200 240" xmlns="http://www.w3.org/2000/svg" class="pose-${pose}" aria-hidden="true">${fn(parts(L), color)}</svg>`;
     },
+    // head-and-shoulders preview, used for the hairstyle picker
+    thumb(look) {
+      const L = { ...DEFAULT_LOOK, ...(look || {}) };
+      return `<svg viewBox="46 -12 108 136" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${poses.idle(parts(L))}</svg>`;
+    },
     poses: Object.keys(poses),
   };
 })();
