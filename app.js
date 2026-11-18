@@ -561,7 +561,7 @@
   }
   function addSticker(key) {
     const c = toBoard(innerWidth / 2, innerHeight / 2);
-    const s = /urgent|important|waiting/.test(key) ? 130 : 110;
+    const s = /urgent|important|waiting/.test(key) ? 150 : 110;
     const k = { id: uid(), k: key, x: Math.round(c.x - s / 2 + Math.random() * 300 - 150), y: Math.round(c.y - s / 2 + Math.random() * 200 - 100),
       s, rot: +(Math.random() * 16 - 8).toFixed(1), z: ++state.z };
     state.stickers.push(k); renderSticker(k, true); save();

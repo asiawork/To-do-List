@@ -16,10 +16,10 @@
     return 'M' + pts.join(' L') + ' Z';
   })();
 
-  const tag = (label, fill) =>
-    `<path d="M8 32 H76 L94 50 L76 68 H8 Q4 68 4 64 V36 Q4 32 8 32 Z" fill="${fill}" ${S}/>` +
-    `<circle cx="80" cy="50" r="4" fill="#fff" stroke="${INK}" stroke-width="3"/>` +
-    `<text x="40" y="58" text-anchor="middle" font-family="Mali, sans-serif" font-weight="700" font-size="22" fill="${INK}">${label}</text>`;
+  const tag = (label, fill, fs = 24) =>
+    `<path d="M6 24 H72 L96 50 L72 76 H6 Q2 76 2 72 V28 Q2 24 6 24 Z" fill="${fill}" ${S}/>` +
+    `<circle cx="83" cy="50" r="4.5" fill="#fff" stroke="${INK}" stroke-width="3"/>` +
+    `<text x="38" y="59" text-anchor="middle" font-family="Mali, sans-serif" font-weight="700" font-size="${fs}" fill="${INK}">${label}</text>`;
 
   const LIB = {
     cat:
@@ -71,8 +71,8 @@
       `<path d="M50 6 L58 22 L76 12 L74 32 L94 34 L80 48 L94 62 L74 66 L78 86 L59 76 L50 94 L41 76 L22 86 L26 66 L6 62 L20 48 L6 34 L26 32 L24 12 L42 22 Z" fill="#FFE98A" ${S}/>` +
       `<text x="50" y="59" text-anchor="middle" font-family="Mali, sans-serif" font-weight="700" font-size="25" fill="${INK}">สู้ ๆ</text>`,
     urgent: tag('ด่วน!', '#FF9C9C'),
-    important: tag('สำคัญ', '#FFD84D'),
-    waiting: tag('รอตอบ', '#BDE3FF'),
+    important: tag('สำคัญ', '#FFD84D', 22),
+    waiting: tag('รอ cf', '#BDE3FF'),
   };
 
   window.Stickers = {
