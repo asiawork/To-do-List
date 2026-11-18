@@ -1,6 +1,6 @@
-const CACHE = 'paekaikon-v15';
+const CACHE = 'paekaikon-v16';
 const ASSETS = [
-  './', 'index.html', 'style.css', 'app.js', 'character.js', 'manifest.webmanifest',
+  './', 'index.html', 'style.css', 'app.js', 'character.js', 'stickers.js', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   "fonts/itim-latin-400-normal.woff2",
   "fonts/itim-thai-400-normal.woff2",

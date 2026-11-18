@@ -294,6 +294,7 @@
     const last = undoStack.pop();
     if (!last) return;
     last.zones.forEach((z) => { state.zones.push(z); renderZone(z); });
+    (last.stickers || []).forEach((k) => { state.stickers.push(k); renderSticker(k, true); });
     last.notes.forEach((n) => { state.notes.push(n); renderNote(n, true); });
     state.notes.forEach((n) => renderNote(n));
     hideToast(); renderCount(); updateBuddy(); save();
@@ -421,7 +422,7 @@
   // ---------- pointer: board ----------
   let spaceDown = false;
   viewport.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.note, .zone-head, .zone-resize')) return;
+    if (e.target.closest('.note, .zone-head, .zone-resize, .sticker')) return;
     lastActivity = Date.now();
     if (editingId) endEdit();
     const sx = e.clientX, sy = e.clientY, ox = state.view.x, oy = state.view.y;
@@ -540,6 +541,82 @@
     if (back) { renderCount(); save(); say(`งานประจำกลับมาแล้ว ${back} อัน`); }
   }
 
+  // ---------- stickers ----------
+  const stickerEl = (id) => layer.querySelector(`.sticker[data-id="${id}"]`);
+  function renderSticker(k, pop) {
+    let el = stickerEl(k.id);
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'sticker';
+      el.dataset.id = k.id;
+      el.innerHTML = Stickers.svg(k.k) + '<button class="s-del" title="เอาออก">×</button><span class="s-size" title="ปรับขนาด">⤡</span>';
+      layer.appendChild(el);
+      if (pop) { el.classList.add('pop'); el.addEventListener('animationend', () => el.classList.remove('pop'), { once: true }); }
+    }
+    el.style.left = k.x + 'px'; el.style.top = k.y + 'px';
+    el.style.width = el.style.height = k.s + 'px';
+    el.style.zIndex = k.z;
+    el.style.setProperty('--rot', k.rot + 'deg');
+    return el;
+  }
+  function addSticker(key) {
+    const c = toBoard(innerWidth / 2, innerHeight / 2);
+    const s = /urgent|important|waiting/.test(key) ? 130 : 110;
+    const k = { id: uid(), k: key, x: Math.round(c.x - s / 2 + Math.random() * 300 - 150), y: Math.round(c.y - s / 2 + Math.random() * 200 - 100),
+      s, rot: +(Math.random() * 16 - 8).toFixed(1), z: ++state.z };
+    state.stickers.push(k); renderSticker(k, true); save();
+    burstAt(k);
+  }
+  function burstAt(k) {
+    const r = stickerEl(k.id).getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, '#FFD84D');
+  }
+  const tray = $('#stickerTray');
+  Stickers.keys.forEach((key) => {
+    const b = document.createElement('button');
+    b.innerHTML = Stickers.svg(key);
+    b.addEventListener('click', () => { addSticker(key); });
+    tray.appendChild(b);
+  });
+  $('#stickerBtn').addEventListener('click', (e) => { e.stopPropagation(); tray.hidden = !tray.hidden; });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.sticker-wrap')) tray.hidden = true; });
+
+  layer.addEventListener('pointerdown', (e) => {
+    const el = e.target.closest('.sticker'); if (!el) return;
+    if (e.target.closest('.s-del')) return;
+    e.stopPropagation(); e.preventDefault();
+    if (editingId) endEdit();
+    lastActivity = Date.now();
+    const k = state.stickers.find((x) => x.id === el.dataset.id); if (!k) return;
+    k.z = ++state.z; el.style.zIndex = k.z;
+    const resizing = !!e.target.closest('.s-size');
+    const sx = e.clientX, sy = e.clientY, o = { ...k };
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('dragging');
+    const move = (ev) => {
+      const dx = (ev.clientX - sx) / state.view.s, dy = (ev.clientY - sy) / state.view.s;
+      if (resizing) k.s = Math.round(Math.min(420, Math.max(50, o.s + (dx + dy) / 2)));
+      else { k.x = Math.round(o.x + dx); k.y = Math.round(o.y + dy); }
+      renderSticker(k);
+    };
+    const up = () => {
+      el.classList.remove('dragging');
+      el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+      save();
+    };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  });
+  layer.addEventListener('click', (e) => {
+    const del = e.target.closest('.s-del'); if (!del) return;
+    const id = del.closest('.sticker').dataset.id;
+    const k = state.stickers.find((x) => x.id === id); if (!k) return;
+    state.stickers = state.stickers.filter((x) => x !== k);
+    stickerEl(id).remove();
+    undoStack.push({ notes: [], zones: [], stickers: [{ ...k }] });
+    showToast('เอาสติกเกอร์ออกแล้ว');
+    save();
+  });
+
   // ---------- toolbar ----------
   const sw = $('#swatches');
   COLORS.forEach((col, i) => {
@@ -586,11 +663,11 @@
     try {
       const data = JSON.parse(await f.text());
       if (!Array.isArray(data.notes)) throw new Error('bad');
-      state = { ...seed(), ...data, notes: data.notes, zones: Array.isArray(data.zones) ? data.zones : defaultZones() };
+      state = { ...seed(), ...data, notes: data.notes, zones: Array.isArray(data.zones) ? data.zones : defaultZones(), stickers: Array.isArray(data.stickers) ? data.stickers : [] };
       state.buddy = { ...Character.DEFAULT_LOOK, ...(state.buddy || {}) };
       showTitle();
       layer.innerHTML = '';
-      renderAll(); applyView(); save(); fitAll();
+      renderAll(); state.stickers.forEach((k) => renderSticker(k)); applyView(); save(); fitAll();
       say('เปิดกระดานเดิมให้แล้วน้า');
     } catch (err) { say('ไฟล์นี้เปิดไม่ได้ ลองไฟล์อื่นนะ'); }
     e.target.value = '';
@@ -782,6 +859,8 @@
   titleEl.addEventListener('blur', () => { const t = titleEl.textContent.trim().slice(0, 40); state.title = t && t !== APP_NAME ? t : ''; showTitle(); save(); });
   showTitle();
 
+  if (!Array.isArray(state.stickers)) state.stickers = [];
+  state.stickers.forEach((k) => renderSticker(k));
   state.buddy = { ...Character.DEFAULT_LOOK, ...(state.buddy || {}) };
   if (state.buddy.hair === 'bun') state.buddy.hair = 'pony';
   $('#buddy').classList.toggle('hidden', !state.buddy.show);
