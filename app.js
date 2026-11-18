@@ -779,7 +779,7 @@
   titleEl.contentEditable = 'plaintext-only';
   if (titleEl.contentEditable !== 'plaintext-only') titleEl.contentEditable = 'true';
   titleEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); titleEl.blur(); } });
-  titleEl.addEventListener('blur', () => { const t = titleEl.textContent.trim().slice(0, 40); state.title = t || ''; showTitle(); save(); });
+  titleEl.addEventListener('blur', () => { const t = titleEl.textContent.trim().slice(0, 40); state.title = t && t !== APP_NAME ? t : ''; showTitle(); save(); });
   showTitle();
 
   state.buddy = { ...Character.DEFAULT_LOOK, ...(state.buddy || {}) };
