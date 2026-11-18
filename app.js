@@ -576,7 +576,7 @@
     const a = document.createElement('a');
     const d = new Date();
     a.href = URL.createObjectURL(blob);
-    a.download = `asias-task-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`;
+    a.download = `paekaikon-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
@@ -773,7 +773,7 @@
 
   // ---------- go ----------
   // board title: the person's own name for their board
-  const APP_NAME = "asia's task";
+  const APP_NAME = 'แปะไว้ก่อน';
   const titleEl = $('#boardTitle');
   const showTitle = () => { titleEl.textContent = state.title || APP_NAME; document.title = state.title || APP_NAME; };
   titleEl.contentEditable = 'plaintext-only';

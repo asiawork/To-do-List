@@ -1,4 +1,4 @@
-// น้องโน้ต — original doodle character for asia's task
+// น้องโน้ต — original doodle character for แปะไว้ก่อน
 // Each pose is composed from shared parts; `look` changes colors, hairstyle and accessories.
 (function () {
   const INK = '#1b1b1b';
