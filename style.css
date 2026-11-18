@@ -168,7 +168,8 @@ body.hide-done .note.done { display: none; }
 .bar-right { right: 14px; }
 .brand { display: flex; align-items: center; gap: 8px; padding-right: 6px; margin-right: 2px; border-right: 2px dashed #d9ccb4; }
 .brand-mark { width: 22px; height: 20px; background: #FFE98A; border: 2.5px solid var(--ink); border-radius: 2px 2px 7px 2px; transform: rotate(-8deg); }
-.brand-name { font-weight: 700; font-size: 19px; white-space: nowrap; }
+.brand-name { font-weight: 700; font-size: 19px; white-space: nowrap; cursor: text; outline: none; min-width: 40px; border-bottom: 2px dashed transparent; }
+.brand-name:hover, .brand-name:focus { border-bottom-color: #d9ccb4; }
 .swatches { display: flex; gap: 6px; }
 .swatches button {
   width: 32px; height: 30px; border: 2.5px solid var(--ink); border-radius: 3px 3px 9px 3px;

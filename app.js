@@ -588,6 +588,7 @@
       if (!Array.isArray(data.notes)) throw new Error('bad');
       state = { ...seed(), ...data, notes: data.notes, zones: Array.isArray(data.zones) ? data.zones : defaultZones() };
       state.buddy = { ...Character.DEFAULT_LOOK, ...(state.buddy || {}) };
+      showTitle();
       layer.innerHTML = '';
       renderAll(); applyView(); save(); fitAll();
       say('เปิดกระดานเดิมให้แล้วน้า');
@@ -619,7 +620,7 @@
 
   // keyboard
   document.addEventListener('keydown', (e) => {
-    if (e.target.closest('.text, input, select')) return;
+    if (e.target.closest('.text, input, select, .brand-name, .zone-title')) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
     else if (e.key === 'n' || e.key === 'N' || e.key === 'ด') { e.preventDefault(); addNoteInView(); }
     else if (e.key === '0' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); fitAll(); }
@@ -771,6 +772,16 @@
   setInterval(updateBuddy, 1000);
 
   // ---------- go ----------
+  // board title: the person's own name for their board
+  const APP_NAME = "asia's task";
+  const titleEl = $('#boardTitle');
+  const showTitle = () => { titleEl.textContent = state.title || APP_NAME; document.title = state.title || APP_NAME; };
+  titleEl.contentEditable = 'plaintext-only';
+  if (titleEl.contentEditable !== 'plaintext-only') titleEl.contentEditable = 'true';
+  titleEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); titleEl.blur(); } });
+  titleEl.addEventListener('blur', () => { const t = titleEl.textContent.trim().slice(0, 40); state.title = t || ''; showTitle(); save(); });
+  showTitle();
+
   state.buddy = { ...Character.DEFAULT_LOOK, ...(state.buddy || {}) };
   if (state.buddy.hair === 'bun') state.buddy.hair = 'pony';
   $('#buddy').classList.toggle('hidden', !state.buddy.show);
