@@ -837,7 +837,12 @@
     state.buddy[k] = e.target.checked;
     applyLook();
   });
-  $('#lookBtn').addEventListener('click', () => { renderLookPanel(); panel.hidden = false; $('#buddy').classList.add('dressing'); });
+  const openLook = () => { renderLookPanel(); panel.hidden = false; $('#buddy').classList.add('dressing'); };
+  $('#lookBtn').addEventListener('click', openLook);
+  $('#dressBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (panel.hidden) openLook(); else { panel.hidden = true; $('#buddy').classList.remove('dressing'); }
+  });
   $('#lookClose').addEventListener('click', () => { panel.hidden = true; $('#buddy').classList.remove('dressing'); });
   $('#lookReset').addEventListener('click', () => { state.buddy = { ...Character.DEFAULT_LOOK }; applyLook(); });
 

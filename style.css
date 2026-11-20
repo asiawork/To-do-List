@@ -320,3 +320,11 @@ select {
 .sticker .s-del { right: -8px; top: -8px; cursor: pointer; }
 .sticker .s-size { right: -8px; bottom: -8px; cursor: nwse-resize; }
 .sticker:hover .s-del, .sticker:hover .s-size { opacity: 1; }
+.dress-btn {
+  position: absolute; right: 6px; bottom: 150px; pointer-events: auto; z-index: 2;
+  width: 42px; height: 42px; border-radius: 50%; border: 2.5px solid var(--ink); background: #fff;
+  box-shadow: 2px 3px 0 var(--ink); display: grid; place-items: center; cursor: pointer; padding: 0;
+  transition: transform .15s;
+}
+.dress-btn:hover { transform: rotate(-10deg) scale(1.08); }
+#buddy.dressing .dress-btn { background: #f1e6d0; }

@@ -329,6 +329,14 @@ select {
 .sticker .s-del { right: -8px; top: -8px; cursor: pointer; }
 .sticker .s-size { right: -8px; bottom: -8px; cursor: nwse-resize; }
 .sticker:hover .s-del, .sticker:hover .s-size { opacity: 1; }
+.dress-btn {
+  position: absolute; right: 6px; bottom: 150px; pointer-events: auto; z-index: 2;
+  width: 42px; height: 42px; border-radius: 50%; border: 2.5px solid var(--ink); background: #fff;
+  box-shadow: 2px 3px 0 var(--ink); display: grid; place-items: center; cursor: pointer; padding: 0;
+  transition: transform .15s;
+}
+.dress-btn:hover { transform: rotate(-10deg) scale(1.08); }
+#buddy.dressing .dress-btn { background: #f1e6d0; }
 
 </style>
 </head>
@@ -391,6 +399,9 @@ select {
 <div id="buddy">
   <div class="bubble" id="bubble"></div>
   <div class="buddy-body" id="buddyBody"></div>
+  <button class="dress-btn" id="dressBtn" title="แต่งตัวน้องโน้ต">
+    <svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 3.5 4 6l-2 5 3.2 1.4L6.5 10V21h11V10l1.3 2.4L22 11l-2-5-4-2.5Q14.5 6 12 6T8 3.5Z" fill="#FFC6D3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.5 4.2Q12 7.5 14.5 4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
 </div>
 
 <div id="lookPanel" hidden>
@@ -1510,7 +1521,12 @@ select {
     state.buddy[k] = e.target.checked;
     applyLook();
   });
-  $('#lookBtn').addEventListener('click', () => { renderLookPanel(); panel.hidden = false; $('#buddy').classList.add('dressing'); });
+  const openLook = () => { renderLookPanel(); panel.hidden = false; $('#buddy').classList.add('dressing'); };
+  $('#lookBtn').addEventListener('click', openLook);
+  $('#dressBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (panel.hidden) openLook(); else { panel.hidden = true; $('#buddy').classList.remove('dressing'); }
+  });
   $('#lookClose').addEventListener('click', () => { panel.hidden = true; $('#buddy').classList.remove('dressing'); });
   $('#lookReset').addEventListener('click', () => { state.buddy = { ...Character.DEFAULT_LOOK }; applyLook(); });
 
