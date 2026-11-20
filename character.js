@@ -73,11 +73,18 @@
         line('M97 89 Q100 86 103 89', 3)
       : '';
 
-    const eyes = {
+    // without glasses the eyes get bigger, with a little shine, so the face doesn't look empty
+    const bigEye = (x, y) => `<ellipse cx="${x}" cy="${y}" rx="4.6" ry="5.6" fill="${INK}"/><circle cx="${x + 1.6}" cy="${y - 2}" r="1.7" fill="#fff"/>`;
+    const eyes = L.glasses ? {
       dot: `<circle cx="87" cy="91" r="2.6" fill="${INK}"/><circle cx="113" cy="91" r="2.6" fill="${INK}"/>`,
       happy: line('M82.5 93 Q87 86.5 91.5 93', 3) + line('M108.5 93 Q113 86.5 117.5 93', 3),
       closed: line('M82.5 90 Q87 95 91.5 90', 3) + line('M108.5 90 Q113 95 117.5 90', 3),
       down: `<circle cx="86" cy="94" r="2.6" fill="${INK}"/><circle cx="112" cy="94" r="2.6" fill="${INK}"/>`,
+    } : {
+      dot: bigEye(87, 91) + bigEye(113, 91),
+      happy: line('M80.5 94 Q87 84.5 93.5 94', 4) + line('M106.5 94 Q113 84.5 119.5 94', 4),
+      closed: line('M80.5 90 Q87 97 93.5 90', 4) + line('M106.5 90 Q113 97 119.5 90', 4),
+      down: bigEye(86, 94) + bigEye(112, 94),
     };
     const mouths = {
       smile: line('M95 107 Q100 111 105 107', 3),
