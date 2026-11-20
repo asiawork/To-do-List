@@ -210,7 +210,7 @@ select {
 .buddy-body svg { display: block; width: 100%; height: auto; overflow: visible; }
 .bubble {
   font-family: var(--note-font), Mali, sans-serif;
-  position: relative; margin: 0 -10px 244px 0; max-width: 240px;
+  position: relative; margin: 0 -10px 244px 0; max-width: 290px;
   background: #fff; border: 2.5px solid var(--ink); border-radius: 18px;
   padding: 10px 16px; font-size: 19px; line-height: 1.35; box-shadow: 3px 3px 0 var(--ink);
   transition: opacity .2s, transform .2s; transform-origin: 100% 100%;
@@ -222,7 +222,7 @@ select {
 }
 .bubble.swap { opacity: 0; transform: scale(.9); }
 
-.buddy-body .pose-idle, .buddy-body .pose-tea { animation: breathe 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
+.buddy-body .pose-idle, .buddy-body .pose-tea, .buddy-body .pose-drink { animation: breathe 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
 .buddy-body .pose-sleep { animation: breathe 4.6s ease-in-out infinite; transform-origin: 50% 100%; }
 .buddy-body .pose-cheer { animation: hop .5s ease-in-out infinite alternate; }
 .buddy-body .pose-carry { animation: wobble .6s ease-in-out infinite alternate; transform-origin: 50% 100%; }

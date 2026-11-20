@@ -138,6 +138,13 @@
       `<g class="zzz" font-family="Mali, sans-serif" font-weight="700" fill="${INK}">` +
       `<text x="146" y="54" font-size="22">Z</text><text x="164" y="34" font-size="16">z</text><text x="176" y="18" font-size="12">z</text></g>`,
 
+    drink: ({ limb, head, body }) =>
+      body + limb('M66 150 Q57 178 62 206') + limb('M134 150 Q156 148 148 128') +
+      `<path d="M137 98 L157 98 L154 130 L140 130 Z" fill="#fff" fill-opacity=".75" stroke="${INK}" stroke-width="3.2" stroke-linejoin="round"/>` +
+      `<path d="M138.6 108 L155.4 108 L154 128.6 L141.2 128.6 Z" fill="#9ED4F5"/>` +
+      line('M143 113 L143 122', 2.2) +
+      head('happy', 'smile'),
+
     tea: ({ limb, head, body }) =>
       body +
       `<g class="steam">${line('M94 158 q-5 -6 0 -12 q5 -6 0 -12', 3)}${line('M106 160 q-5 -6 0 -12 q5 -6 0 -12', 3)}</g>` +

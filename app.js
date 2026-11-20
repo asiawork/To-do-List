@@ -751,6 +751,7 @@
     if (now - lastActivity > 120000) return 'sleep';
     return 'idle';
   }
+  const WATER_LINE = 'งานเยอะจัง พักกินน้ำบ้างนะ';
   function lineFor(m) {
     const total = state.notes.length;
     const done = state.notes.filter((n) => n.done).length, left = total - done;
@@ -765,7 +766,7 @@
           `เหลืออีก ${left} งาน สู้ ๆ`,
           `ค่อย ๆ ทำทีละอันก็ได้`,
           done ? `ทำไปแล้ว ${done} งาน เก่งมาก` : `เริ่มจากอันที่ง่ายสุดก่อนมั้ย`,
-          left > 6 ? 'งานเยอะจัง พักน้ำบ้างนะ' : 'วันนี้ไหวอยู่แล้ว',
+          left > 6 ? WATER_LINE : 'วันนี้ไหวอยู่แล้ว',
         ]);
     }
   }
@@ -781,11 +782,12 @@
   }
   function updateBuddy() {
     const m = mood();
-    if (m !== currentPose) {
+    const pose = m === 'idle' && currentMsg === WATER_LINE ? 'drink' : m; // holds a glass while reminding to drink
+    if (pose !== currentPose) {
       const editing = editingId && byId(editingId);
       const dragging = draggingId && byId(draggingId);
-      buddyBody.innerHTML = Character.render(m, (dragging || editing || {}).color, state.buddy);
-      currentPose = m;
+      buddyBody.innerHTML = Character.render(pose, (dragging || editing || {}).color, state.buddy);
+      currentPose = pose;
     }
     if (m !== lastMood) {
       if (m !== 'cheer') say(lineFor(m));
@@ -844,6 +846,7 @@
     buddyBody.classList.remove('boing'); void buddyBody.offsetWidth; buddyBody.classList.add('boing');
     if (currentPose === 'sleep' && state.notes.length) { waveUntil = Date.now() + 2500; updateBuddy(); return; }
     say(lineFor(mood() === 'wave' ? 'idle' : mood()));
+    updateBuddy();
   });
   ['pointerdown', 'keydown', 'wheel'].forEach((ev) => addEventListener(ev, () => { lastActivity = Date.now(); }, { passive: true }));
   setInterval(updateBuddy, 1000);
